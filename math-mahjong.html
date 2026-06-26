@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math-Jong Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #0f172a;
+            user-select: none; -webkit-user-select: none;
+        }
+        #game-wrapper {
+            width: 800px; height: 450px;
+            position: absolute; top: 50%; left: 50%;
+            transform-origin: center center;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .card-fade-out { animation: fadeScale 0.4s forwards; }
+        @keyframes fadeScale {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.6); opacity: 0; pointer-events: none; }
+        }
+    </style>
+</head>
+<body class="text-white font-sans antialiased">
+
+    <div id="game-wrapper" class="bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-slate-700 flex flex-col justify-between">
+        
+        <div id="splash-screen" class="absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-950 to-purple-950 z-50 flex flex-col items-center justify-center text-center transition-all duration-700">
+            <div class="text-5xl mb-3 animate-bounce">🧩</div>
+            <h1 class="text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-1">
+                MATH-JONG MATCH
+            </h1>
+            <p class="text-slate-400 text-sm mb-6 tracking-wide">Melatih Ketajaman Berhitung dengan Menyenangkan</p>
+            <button onclick="showMenu()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-lg shadow-lg shadow-indigo-600/30 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer text-sm">
+                MULAI BERMAIN
+            </button>
+        </div>
+
+        <div id="menu-screen" class="absolute inset-0 bg-slate-950 z-40 hidden flex flex-col items-center justify-center p-6 text-center">
+            <h2 class="text-xl font-extrabold mb-5 text-slate-200 tracking-wide uppercase">PILIH OPERASI MATEMATIKA</h2>
+            <div class="grid grid-cols-2 gap-4 w-full max-w-xl mx-auto">
+                <button onclick="selectDifficulty('+')" class="p-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-left flex items-center justify-between transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer">
+                    <div>
+                        <div class="text-lg font-black">Penjumlahan</div>
+                        <div class="text-emerald-200 text-xs mt-0.5">Mencocokkan hasil tambah</div>
+                    </div>
+                    <span class="text-2xl font-bold">＋</span>
+                </button>
+                <button onclick="selectDifficulty('-')" class="p-4 bg-rose-600 hover:bg-rose-500 rounded-xl text-left flex items-center justify-between transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer">
+                    <div>
+                        <div class="text-lg font-black">Pengurangan</div>
+                        <div class="text-rose-200 text-xs mt-0.5">Mencocokkan hasil kurang</div>
+                    </div>
+                    <span class="text-2xl font-bold">－</span>
+                </button>
+                <button onclick="startGameMode('x')" class="p-4 bg-amber-600 hover:bg-amber-500 rounded-xl text-left flex items-center justify-between transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer">
+                    <div>
+                        <div class="text-lg font-black">Perkalian</div>
+                        <div class="text-amber-200 text-xs mt-0.5">Mencocokkan hasil kali</div>
+                    </div>
+                    <span class="text-2xl font-bold">✕</span>
+                </button>
+                <button onclick="startGameMode(':')" class="p-4 bg-sky-600 hover:bg-sky-500 rounded-xl text-left flex items-center justify-between transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer">
+                    <div>
+                        <div class="text-lg font-black">Pembagian</div>
+                        <div class="text-sky-200 text-xs mt-0.5">Mencocokkan hasil bagi</div>
+                    </div>
+                    <span class="text-2xl font-bold">÷</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="diff-screen" class="absolute inset-0 bg-slate-950 z-40 hidden flex flex-col items-center justify-center p-6 text-center">
+            <button onclick="backToMenu()" class="absolute top-4 left-4 text-xs text-slate-400 hover:text-white">← Kembali</button>
+            <h2 id="diff-screen-title" class="text-xl font-extrabold mb-2 text-slate-200 tracking-wide uppercase">PILIH TINGKAT KESULITAN</h2>
+            <p class="text-slate-400 text-xs mb-6">Angka pada soal akan menyesuaikan tingkat kesulitan yang dipilih.</p>
+            
+            <div class="flex flex-col gap-3 w-full max-w-xs mx-auto">
+                <button onclick="startGame('easy')" class="py-3 px-5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer text-sm">
+                    🟢 EASY (Mudah)
+                </button>
+                <button onclick="startGame('medium')" class="py-3 px-5 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 font-bold rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer text-sm">
+                    🟡 MEDIUM (Sedang)
+                </button>
+                <button onclick="startGame('hard')" class="py-3 px-5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 font-bold rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer text-sm">
+                    🔴 HARD (Sulit)
+                </button>
+            </div>
+        </div>
+
+        <div class="p-3 bg-slate-800/90 backdrop-blur border-b border-slate-700 flex justify-between items-center z-10 h-[50px]">
+            <div class="flex items-center gap-3 text-xs">
+                <button onclick="backToMenu()" class="text-slate-400 hover:text-white transition-colors cursor-pointer font-medium">← Menu</button>
+                <span class="h-3 w-px bg-slate-700"></span>
+                <span id="game-mode-title" class="font-bold text-indigo-400 tracking-wide uppercase">Mode: -</span>
+                <span class="h-3 w-px bg-slate-700"></span>
+                <span id="game-diff-badge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase">EASY</span>
+            </div>
+            <div class="flex items-center gap-5 text-xs font-semibold tracking-wider text-slate-300">
+                <div class="flex items-center gap-1.5 bg-slate-900/60 px-2.5 py-1 rounded-md border border-slate-700">
+                    ⏱️ DURASI: <span id="game-timer" class="text-emerald-400 font-mono text-sm font-bold">00:00</span>
+                </div>
+                <div>PASANGAN: <span id="pair-counter" class="text-emerald-400 font-mono text-sm font-bold">0/10</span></div>
+            </div>
+        </div>
+
+        <div class="flex-1 relative bg-slate-900 overflow-hidden flex items-center justify-center p-3 h-[400px]">
+            <div id="bg-reveal-container" class="absolute inset-3 rounded-lg overflow-hidden pointer-events-none">
+                <img id="bg-game-image" src="" alt="Background" class="w-full h-full object-cover select-none">
+            </div>
+            <div id="game-grid" class="grid grid-cols-5 gap-2 w-full h-full relative z-10"></div>
+        </div>
+<!-- ================= WIN SCREEN & E-CERTIFICATE ================= -->
+        <div id="win-screen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+            
+            <div class="flex w-full h-full max-w-3xl items-center gap-6">
+                <!-- KIRI: Preview Sertifikat Pencapaian Premium -->
+                <div id="certificate-area" class="w-[450px] h-[330px] bg-gradient-to-br from-slate-50 via-amber-50/40 to-slate-100 text-slate-900 rounded-xl p-5 shadow-2xl border-[10px] border-amber-500 flex flex-col justify-between items-center text-center relative overflow-hidden">
+                    <div class="absolute inset-1.5 border border-amber-600/20 rounded-lg pointer-events-none"></div>
+                    <div class="absolute -right-6 -bottom-6 text-slate-900/[0.04] text-[130px] font-black pointer-events-none select-none">🏆</div>
+                    
+                    <div class="relative z-10 w-full">
+                        <div class="text-amber-800 font-extrabold tracking-widest text-[9px] uppercase">SELAMAT ATAS PENCAPAIAN PADA GAME</div>
+                        <h3 class="text-2xl font-black text-slate-950 tracking-wide mt-0.5 drop-shadow-sm font-serif">MATH-JONG MATCH</h3>
+                    </div>
+
+                    <div class="w-full flex items-center justify-center gap-5 px-1 my-auto relative z-10">
+                        
+                        <div class="w-[110px] h-[110px] flex-shrink-0 flex items-center justify-center">
+                            <img src="img/trophy.png" alt="trophy" class="max-w-full max-h-full object-contain drop-shadow-[0_6px_10px_rgba(0,0,0,0.15)]">
+                        </div>
+
+                        <div class="flex-1 flex flex-col gap-2.5 border-l-2 border-amber-500/20 pl-4 text-left">
+                            
+                            <div class="flex items-center gap-3">
+                                <div class="w-14 h-14 rounded-xl border-2 border-amber-500 bg-white overflow-hidden shadow-md flex items-center justify-center flex-shrink-0">
+                                    <img id="cert-avatar" src="" class="w-full h-full object-cover hidden">
+                                    <span id="cert-avatar-placeholder" class="text-2xl">👑</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[9px] text-amber-800 font-bold uppercase tracking-wider">Kepada :</div>
+                                    <div id="cert-name" class="text-xl font-black text-slate-900 leading-tight truncate border-b-2 border-amber-500/30 pb-0.5">Hebat!</div>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-slate-800 font-medium leading-relaxed text-left normal-case tracking-normal">
+                                Atas keberhasilan menyelesaikan tantangan <span id="cert-mode" class="font-extrabold uppercase text-indigo-600">Penjumlahan</span> 
+                                tingkat <span id="cert-diff" class="font-black text-rose-600 uppercase">EASY</span> 
+                                dengan catatan waktu <span id="cert-time-spent" class="font-black text-emerald-600">00:00</span>, tetap semangat dan terus berlatih.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="w-full border-t border-slate-300/60 pt-2 flex justify-between items-center text-[9px] text-slate-800 font-bold px-2 relative z-10">
+                        <div>Tanggal Rilis: <span id="cert-date" class="text-slate-900 font-extrabold">-</span></div>
+                        <div class="bg-amber-600 text-white px-2 py-0.5 rounded font-black text-[8px] tracking-wide">O-CRE.BLOGSPOT.COM</div>
+                    </div>
+                </div>
+                <!-- KANAN: Kontrol Input & Tombol Aksi -->
+                <div class="flex-1 flex flex-col justify-center text-left">
+                    <div class="text-2xl font-black text-emerald-400 mb-1 flex items-center gap-2">🏆 LEVEL SELESAI!</div>
+                    <p class="text-slate-300 text-xs mb-3">Isi nama di bawah ini untuk mencetak piala digital kamu.</p>
+                    
+                    <div class="space-y-2 mb-4 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Nama Jagoan:</label>
+                            <input type="text" id="input-nama" placeholder="Masukkan nama..." oninput="updateCertName(this.value)" class="w-full bg-slate-800 text-white border border-slate-700 px-3 py-1.5 text-xs rounded focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Foto (Opsional):</label>
+                            <input type="file" id="input-foto" accept="image/*" onchange="uploadFoto(event)" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-200 hover:file:bg-indigo-800 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <button onclick="downloadCertificate()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black rounded-lg text-xs tracking-wider shadow-lg shadow-amber-500/20 transition-all cursor-pointer text-center">
+                            💾 SIMPAN GAMBAR CERTIFICATE
+                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="backToMenu()" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 font-bold rounded-lg text-xs transition-all cursor-pointer text-center border border-slate-700">
+                                Menu Utama
+                            </button>
+                            <button onclick="restartLevel()" class="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-lg text-xs transition-all cursor-pointer text-center">
+                                Main Lagi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
